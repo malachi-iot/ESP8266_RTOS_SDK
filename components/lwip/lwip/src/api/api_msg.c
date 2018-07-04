@@ -1297,6 +1297,11 @@ lwip_netconn_do_disconnect(void *m)
 }
 
 #if LWIP_TCP
+
+#include "esp_misc.h"
+#include "esp_sta.h"
+#include "esp_system.h"
+
 /**
  * Set a TCP pcb contained in a netconn into listen mode
  * Called from netconn_listen.
@@ -1400,6 +1405,8 @@ lwip_netconn_do_send(void *m)
       switch (NETCONNTYPE_GROUP(msg->conn->type)) {
 #if LWIP_RAW
       case NETCONN_RAW:
+        printf("Got here 2.1\n");
+
         if (ip_addr_isany(&msg->msg.b->addr) || IP_IS_ANY_TYPE_VAL(msg->msg.b->addr)) {
           msg->err = raw_send(msg->conn->pcb.raw, msg->msg.b->p);
         } else {
@@ -1410,6 +1417,8 @@ lwip_netconn_do_send(void *m)
 #if LWIP_UDP
       case NETCONN_UDP:
 #if LWIP_CHECKSUM_ON_COPY
+        printf("Got here 2.2.1\n");
+
         if (ip_addr_isany(&msg->msg.b->addr) || IP_IS_ANY_TYPE_VAL(msg->msg.b->addr)) {
           msg->err = udp_send_chksum(msg->conn->pcb.udp, msg->msg.b->p,
             msg->msg.b->flags & NETBUF_FLAG_CHKSUM, msg->msg.b->toport_chksum);
@@ -1419,20 +1428,47 @@ lwip_netconn_do_send(void *m)
             msg->msg.b->flags & NETBUF_FLAG_CHKSUM, msg->msg.b->toport_chksum);
         }
 #else /* LWIP_CHECKSUM_ON_COPY */
+        printf("Got here 2.2.2: %d\n", msg->msg.b->p->len);
+
+        if(msg->msg.b->p->len > 2000)
+        {
+          vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
+
         if (ip_addr_isany_val(msg->msg.b->addr) || IP_IS_ANY_TYPE_VAL(msg->msg.b->addr)) {
           msg->err = udp_send(msg->conn->pcb.udp, msg->msg.b->p);
         } else {
           msg->err = udp_sendto(msg->conn->pcb.udp, msg->msg.b->p, &msg->msg.b->addr, msg->msg.b->port);
         }
+
+        printf("Got here 2.2.3: %d\n", msg->err);
+
 #endif /* LWIP_CHECKSUM_ON_COPY */
         break;
 #endif /* LWIP_UDP */
       default:
+        printf("Got here 2.3\n");
         break;
       }
     }
   }
+
+  printf("Got here 2.4\n");
+
+  volatile int debug;
+
+/*
+  if(msg->msg.b->p->len > 2000)
+  {
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+  } */
+
+  printf("Got here 2.5\n");
   TCPIP_APIMSG_ACK(msg);
+
+/*
+  if(msg->msg.b->p->len > 2000)
+    vTaskDelay(5000 / portTICK_PERIOD_MS); */
 }
 
 #if LWIP_TCP

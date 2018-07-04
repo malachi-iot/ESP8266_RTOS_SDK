@@ -756,6 +756,7 @@ ip4_output_if(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
              u8_t ttl, u8_t tos,
              u8_t proto, struct netif *netif)
 {
+  printf("ip4_output_if\n");
 #if IP_OPTIONS_SEND
   return ip4_output_if_opt(p, src, dest, ttl, tos, proto, netif, NULL, 0);
 }
@@ -799,6 +800,9 @@ ip4_output_if_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
 #if IP_OPTIONS_SEND
   return ip4_output_if_opt_src(p, src, dest, ttl, tos, proto, netif, NULL, 0);
 }
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /**
  * Same as ip_output_if_opt() but 'src' address is not replaced by netif address
@@ -953,12 +957,16 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
 #if IP_FRAG
   /* don't fragment if interface has mtu set to 0 [loopif] */
   if (netif->mtu && (p->tot_len > netif->mtu)) {
+    LWIP_DEBUGF(IP_DEBUG, ("ip4_output_if: call ip_frag()\n"));
+    vTaskDelay(500 / portTICK_PERIOD_MS);
     return ip4_frag(p, netif, dest);
   }
 #endif /* IP_FRAG */
 
   LWIP_DEBUGF(IP_DEBUG, ("ip4_output_if: call netif->output()\n"));
-  return netif->output(netif, p, dest);
+  err_t result =  netif->output(netif, p, dest);
+  vTaskDelay(500 / portTICK_PERIOD_MS);
+  return result;
 }
 
 /**

@@ -712,7 +712,12 @@ netconn_send(struct netconn *conn, struct netbuf *buf)
   API_MSG_VAR_REF(msg).conn = conn;
   API_MSG_VAR_REF(msg).msg.b = buf;
   err = netconn_apimsg(lwip_netconn_do_send, &API_MSG_VAR_REF(msg));
+
+  LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_send: sent 1\n"));
+
   API_MSG_VAR_FREE(msg);
+
+  LWIP_DEBUGF(API_LIB_DEBUG, ("netconn_send: sent 2\n"));
 
   return err;
 }

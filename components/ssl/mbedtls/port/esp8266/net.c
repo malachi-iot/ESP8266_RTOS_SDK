@@ -31,6 +31,8 @@
 
 #include "mbedtls/net.h"
 
+#include "mbedtls/debug.h"
+
 #include <string.h>
 
 #include <sys/types.h>
@@ -466,6 +468,10 @@ int mbedtls_net_recv_timeout( void *ctx, unsigned char *buf, size_t len,
     return( mbedtls_net_recv( ctx, buf, len ) );
 }
 
+#include "esp_misc.h"
+#include "esp_sta.h"
+#include "esp_system.h"
+
 /*
  * Write at most 'len' characters
  */
@@ -477,7 +483,11 @@ int mbedtls_net_send( void *ctx, const unsigned char *buf, size_t len )
     if( fd < 0 )
         return( MBEDTLS_ERR_NET_INVALID_CONTEXT );
 
+    printf("free heap size %d line %d \n", system_get_free_heap_size(), __LINE__);
+
     ret = (int) write( fd, buf, len );
+
+    printf("mbedtls_net_send: %d (errno=%d %s)\n", ret, errno, strerror(errno));
 
     if( ret < 0 )
     {

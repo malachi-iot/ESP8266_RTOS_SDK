@@ -744,6 +744,8 @@ ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
   left = p->tot_len - IP_HLEN;
 
   while (left) {
+    printf("ip4_frag: left = %d\n", left);
+
     /* Fill this fragment */
     fragsize = LWIP_MIN(left, nfb * 8);
 
@@ -780,6 +782,7 @@ ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
 
     left_to_copy = fragsize;
     while (left_to_copy) {
+      printf("ip4_frag: left_to_copy = %d\n", left_to_copy);
       struct pbuf_custom_ref *pcr;
       u16_t plen = p->len - poff;
       newpbuflen = LWIP_MIN(left_to_copy, plen);
@@ -818,6 +821,8 @@ ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
     }
     poff += newpbuflen;
 #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
+
+    printf("ip4_frag: phase 1\n");
 
     /* Correct header */
     last = (left <= netif->mtu - IP_HLEN);
