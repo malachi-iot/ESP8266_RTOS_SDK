@@ -745,6 +745,8 @@ etharp_input(struct pbuf *p, struct netif *netif)
 static err_t
 etharp_output_to_arp_index(struct netif *netif, struct pbuf *q, u8_t arp_idx)
 {
+  printf("etharp_output_to_arp_index\n");
+
   LWIP_ASSERT("arp_table[arp_idx].state >= ETHARP_STATE_STABLE",
               arp_table[arp_idx].state >= ETHARP_STATE_STABLE);
   /* if arp table entry is about to expire: re-request it,
@@ -795,6 +797,8 @@ etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
   LWIP_ASSERT("netif != NULL", netif != NULL);
   LWIP_ASSERT("q != NULL", q != NULL);
   LWIP_ASSERT("ipaddr != NULL", ipaddr != NULL);
+
+  printf("etharp_output: phase 0\n");
 
   /* Determine on destination hardware address. Broadcasts and multicasts
    * are special, other IP addresses are looked up in the ARP table. */
@@ -849,11 +853,15 @@ etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
         }
       }
     }
+
+    printf("etharp_output: phase 1\n");
+
 #if LWIP_NETIF_HWADDRHINT
     if (netif->addr_hint != NULL) {
       /* per-pcb cached entry was given */
       u8_t etharp_cached_entry = *(netif->addr_hint);
       if (etharp_cached_entry < ARP_TABLE_SIZE) {
+        printf("etharp_output: phase 1.1\n");
 #endif /* LWIP_NETIF_HWADDRHINT */
         if ((arp_table[etharp_cached_entry].state >= ETHARP_STATE_STABLE) &&
 #if ETHARP_TABLE_MATCH_NETIF
@@ -868,6 +876,8 @@ etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
       }
     }
 #endif /* LWIP_NETIF_HWADDRHINT */
+
+    printf("etharp_output: phase 2\n");
 
     /* find stable entry: do this here since this is a critical path for
        throughput and etharp_find_entry() is kind of slow */
@@ -886,6 +896,8 @@ etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
        queue on destination Ethernet address belonging to ipaddr */
     return etharp_query(netif, dst_addr, q);
   }
+
+  printf("etharp_output: phase 3\n");
 
   /* continuation for multicast/broadcast destinations */
   /* obtain source Ethernet address of the given interface */

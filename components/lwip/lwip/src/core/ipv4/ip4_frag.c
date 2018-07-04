@@ -702,6 +702,9 @@ ipfrag_free_pbuf_custom(struct pbuf *p)
 }
 #endif /* !LWIP_NETIF_TX_SINGLE_PBUF */
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 /**
  * Fragment an IP datagram if too large for the netif.
  *
@@ -841,11 +844,16 @@ ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
     }
 #endif /* CHECKSUM_GEN_IP */
 
+    printf("ip4_frag: phase 1.1\n");
+
     /* No need for separate header pbuf - we allowed room for it in rambuf
      * when allocated.
      */
     netif->output(netif, rambuf, dest);
     IPFRAG_STATS_INC(ip_frag.xmit);
+
+    printf("ip4_frag: phase 2\n");
+    vTaskDelay(250 / portTICK_PERIOD_MS);
 
     /* Unfortunately we can't reuse rambuf - the hardware may still be
      * using the buffer. Instead we free it (and the ensuing chain) and
@@ -858,9 +866,12 @@ ip4_frag(struct pbuf *p, struct netif *netif, const ip4_addr_t *dest)
     left -= fragsize;
     ofo += nfb;
   }
+  printf("ip4_frag: phase 3\n");
+
   MIB2_STATS_INC(mib2.ipfragoks);
   return ERR_OK;
 memerr:
+  printf("ip4_frag: memerr\n");
   MIB2_STATS_INC(mib2.ipfragfails);
   return ERR_MEM;
 }

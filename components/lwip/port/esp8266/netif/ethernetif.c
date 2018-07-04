@@ -130,6 +130,8 @@ static int8_t low_level_output(struct netif* netif, struct pbuf* p)
     esp_aio_t aio;
     int8_t err = ERR_OK;
 
+    printf("low_level_output: phase 1\n");
+
     if (netif == NULL) {
         TCPIP_ATAPTER_LOG("ERROR netif is NULL\n");
         return ERR_ARG;
@@ -156,6 +158,9 @@ static int8_t low_level_output(struct netif* netif, struct pbuf* p)
      */
     err = esp_aio_sendto(&aio, NULL, 0);
 
+    putchar(-err + '0');
+    printf("  err=%d\n", err);
+
     if (err == ERR_MEM) {
         err = ERR_OK;
     }
@@ -169,6 +174,7 @@ static int8_t low_level_output(struct netif* netif, struct pbuf* p)
 #if LWIP_STATS
     LINK_STATS_INC(link.xmit);
 #endif
+
     return err;
 }
 
